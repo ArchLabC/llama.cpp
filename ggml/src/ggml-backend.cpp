@@ -28,6 +28,10 @@
 #include <sys/sysctl.h>
 #endif
 
+#ifdef __linux__
+#include <sys/mman.h>
+#endif
+
 
 // backend buffer type
 
@@ -2824,8 +2828,39 @@ static const char * ggml_backend_cpu_buffer_type_get_name(ggml_backend_buffer_ty
     GGML_UNUSED(buft);
 }
 
+static bool ggml_backend_cpu_hugepages = false;
+
+void ggml_backend_cpu_set_hugepages(bool enable) {
+    ggml_backend_cpu_hugepages = enable;
+}
+
+static void * ggml_backend_cpu_alloc_hugepages(size_t size) {
+#if defined(__linux__)
+    const size_t huge_size = (size_t) 2 << 20;
+    const size_t alloc_size = (size + huge_size - 1) & ~(huge_size - 1);
+
+    void * data = NULL;
+    if (posix_memalign(&data, huge_size, alloc_size) != 0) {
+        return NULL;
+    }
+    if (madvise(data, alloc_size, MADV_HUGEPAGE) != 0) {
+        GGML_LOG_WARN("%s: madvise(MADV_HUGEPAGE) failed, using normal pages\n", __func__);
+    }
+    return data;
+#else
+    GGML_UNUSED(size);
+    return NULL;
+#endif
+}
+
 static ggml_backend_buffer_t ggml_backend_cpu_buffer_type_alloc_buffer(ggml_backend_buffer_type_t buft, size_t size) {
-    void * data = ggml_aligned_malloc(size);
+    void * data = NULL;
+    if (ggml_backend_cpu_hugepages && size >= ((size_t) 2 << 20)) {
+        data = ggml_backend_cpu_alloc_hugepages(size);
+    }
+    if (data == NULL) {
+        data = ggml_aligned_malloc(size);
+    }
 
     if (data == NULL) {
         GGML_LOG_ERROR("%s: failed to allocate buffer of size %zu\n", __func__, size);

@@ -1455,6 +1455,8 @@ static void common_batch_set_zero_state(common_batch & batch, const llama_model 
 }
 
 common_init_result_ptr common_init_from_params(common_params & params, bool model_only) {
+    ggml_backend_cpu_set_hugepages(params.hugepages);
+
     common_init_result_ptr res(new common_init_result(params, model_only));
 
     llama_model * model = res->model();
