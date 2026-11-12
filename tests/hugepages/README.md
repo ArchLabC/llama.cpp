@@ -13,17 +13,22 @@ This Python script tests llama.cpp with and without huge pages to compare their 
 
 First, build llama.cpp and make sure `llama-cli` is available in `build/bin/`.
 
-Put a GGUF model in the `test-models/` folder. The default model path is:
-
-`test-models/smollm2.gguf`
-
 Run the script from the llama.cpp root directory:
 
 ```bash
 python3 tests/hugepages/benchmark.py
 ```
 
-If you use a different model, change the `MODEL` path in `benchmark.py`.
+By default, the script uses `test-models/smollm2.gguf` and runs each mode 5 times.
+
+To use a different model or number of runs:
+
+```bash
+python3 tests/hugepages/benchmark.py --model path/to/model.gguf --repeats 10
+```
+
+Use `--help` to see the available options.
+
 
 ## What It Does
 

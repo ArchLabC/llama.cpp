@@ -5,12 +5,39 @@ import csv
 import re
 import statistics
 from pathlib import Path
+import argparse
 
 # Configuration
-MODEL = "test-models/smollm2.gguf"
+parser = argparse.ArgumentParser(description="Huge Pages Benchmark")
+
+parser.add_argument(
+    "--model",
+    default="test-models/smollm2.gguf",
+    help="Path to the GGUF model",
+)
+
+parser.add_argument(
+    "--repeats",
+    type=int,
+    default=5,
+    help="Number of runs per mode",
+)
+
+args = parser.parse_args()
+
+MODEL = args.model
+REPEATS = args.repeats
 BINARY = "./build/bin/llama-cli"
-REPEATS = 5
 TIMEOUT = 120
+
+if REPEATS < 1:
+    parser.error("--repeats must be at least 1")
+
+if not Path(MODEL).is_file():
+    parser.error(f"Model not found: {MODEL}")
+
+
+    
 
 RESULTS_DIR = Path("tests/hugepages/results")
 RESULTS_DIR.mkdir(parents=True, exist_ok=True)
