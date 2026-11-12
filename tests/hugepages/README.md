@@ -1,30 +1,58 @@
 # Huge Pages Test Harness
 
-This Python script tests llama.cpp with and without huge pages and compares their performance.
+This Python script tests llama.cpp with and without huge pages to compare their performance.
+
+## Requirements
+
+- Python 3
+- Linux
+- Built llama.cpp with huge pages support
+- A GGUF model
 
 ## How to Run
 
-Build llama.cpp first and put a GGUF model at `test-models/smollm2.gguf`.
+First, build llama.cpp and make sure `llama-cli` is available in `build/bin/`.
 
-Run from the project root:
+Put a GGUF model in the `test-models/` folder. The default model path is:
+
+`test-models/smollm2.gguf`
+
+Run the script from the llama.cpp root directory:
 
 ```bash
 python3 tests/hugepages/benchmark.py
 ```
 
+If you use a different model, change the `MODEL` path in `benchmark.py`.
+
 ## What It Does
 
-- Runs normal and huge pages modes 5 times each.
-- Records execution time and tokens/s.
-- Calculates the average and standard deviation.
-- Saves results to CSV files and logs.
+The script runs two modes:
 
-## Output
+- **Normal:** Runs llama.cpp without huge pages.
+- **Huge Pages:** Runs llama.cpp with the `--hugepages` option.
 
-Results are saved in `tests/hugepages/results/`.
+Each mode runs 5 times by default.
 
-- `results.csv` - Results for each run.
-- `summary.csv` - Average and standard deviation.
-- `.log` files - Program output for each run.
+For each run, the script records:
 
-Note: This script compares performance but does not verify that huge pages were actually allocated.
+- **Execution time:** Total time taken to run the program.
+- **Prompt tokens/s:** Speed of processing the input.
+- **Generation tokens/s:** Speed of generating the response.
+- **Status:** PASS, FAIL, or TIMEOUT.
+
+It also calculates the mean and standard deviation for each performance metric.
+
+## Results
+
+All results are saved in `tests/hugepages/results/`.
+
+- `results.csv` - Results from each individual run.
+- `summary.csv` - Mean and standard deviation for both modes.
+- `.log` files - Output from each run.
+
+The script also prints a summary in the terminal after all tests finish.
+
+## Note
+
+PASS means the program exited successfully. It does not confirm that huge pages were actually allocated.
